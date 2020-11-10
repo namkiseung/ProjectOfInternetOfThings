@@ -1,10 +1,38 @@
 import scapy.contrib.mqtt as mqtt
+#Local test in windows 10
+#for i in {1..10}; do ./mosquitto_pub.exe -t test -m "message-$i" -h 192.168.43.59 && sleep 1; done
 pkt=IP(src='211.13.11.1', dst='192.168.43.59')
 payload_packet=TCP(sport=9191, dport=1883, flags='S')
 mqtt_pkt=mqtt.MQTTConnect(clientId='hacker')
 reply, error = sr(pkt/payload_packer/mqtt_pkt, multi=1, timeout=1)
 for x in reply:
 	print(x[0].show2())
+
+'''
+p=IP(dst='192.168.43.0/24')/TCP(dport=1883,flags='S')
+'''    
+'''
+from scapy.contrib.mqtt import *
+from scapy.all import send, sendp, IP, TCP, Ether, sr, sr1
+seq = 12345
+src='192.168.43.65'
+dst='192.168.43.66'
+sport = 1040
+dport=1883
+pkt=IP(src=src, dst=dst)   
+SYN=pkt/TCP(sport=sport, dport=dport, flags="S")
+SYNACK=sr1(SYN)
+ACK=pkt/TCP(sport=sport, dport=dport, flags="A", seq=SYNACK.ack, ack=SYNACK.seq + 1)
+send(ACK)
+ 
+payload_packet = TCP(sport=sport, dport=dport, flags='A', seq=ACK.ack, ack=ACK.seq + 1)
+mqtt_pkt = MQTTConnect(clientId='my_client_id')
+reply, error = sr(pkt/payload_packet/mqtt_pkt, multi=1, timeout=1)
+for r in reply:
+    r[0].show2()
+    r[1].show2()
+'''
+
 	
 '''
 import paho.mqtt.client as mqttClient
@@ -43,24 +71,4 @@ except KeyboardInterrupt:
     client.disconnect()
     client.loop_stop()
 '''
-'''
-from scapy.contrib.mqtt import *
-from scapy.all import send, sendp, IP, TCP, Ether, sr, sr1
-seq = 12345
-src='192.168.43.65'
-dst='192.168.43.66'
-sport = 1040
-dport=1883
-pkt=IP(src=src, dst=dst)   
-SYN=pkt/TCP(sport=sport, dport=dport, flags="S")
-SYNACK=sr1(SYN)
-ACK=pkt/TCP(sport=sport, dport=dport, flags="A", seq=SYNACK.ack, ack=SYNACK.seq + 1)
-send(ACK)
- 
-payload_packet = TCP(sport=sport, dport=dport, flags='A', seq=ACK.ack, ack=ACK.seq + 1)
-mqtt_pkt = MQTTConnect(clientId='my_client_id')
-reply, error = sr(pkt/payload_packet/mqtt_pkt, multi=1, timeout=1)
-for r in reply:
-    r[0].show2()
-    r[1].show2()
-'''
+
